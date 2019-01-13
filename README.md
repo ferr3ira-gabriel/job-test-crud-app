@@ -61,7 +61,7 @@ curl --header "Content-Type: application/json" -XPOST -d \
 	"status": "Updated",
 	"versao": "1.0"
 }' \
-http://localhost:5000/adicionar
+http://localhost:5000/add
 
 #ENV Vars
 MYSQL_HOST=localhost

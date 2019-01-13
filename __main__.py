@@ -10,6 +10,8 @@ import logging
 
 import os
 
+import unicodedata
+
 app = Flask(__name__)
 
 app.config['MYSQL_HOST'] = os.environ['MYSQL_HOST']
@@ -24,10 +26,25 @@ logging.basicConfig(filename='crud-app.log', level=logging.DEBUG, format='%(asct
 
 @app.route('/', methods=['GET'])
 def index():
-    return "To do"
+    return "Crud App: A simple CRUD app to save deploys events!"
 
 
-@app.route('/list', methods=['POST'])
+@app.route('/add', methods=['POST'])
+def insert():
+    try:
+        jsoninfo = request.get_json()
+        jsoninfo['data'] = (datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO deploy_infos (id, componente, versao, responsavel, status, data) VALUES (%(id)s, %(componente)s, %(versao)s, %(responsavel)s, %(status)s, %(data)s)", (jsoninfo))
+        mysql.connection.commit()
+        logging.info('A new deploy info saved.')
+        return ("A new deploy info saved.")
+    except Exception:
+        logging.error('MySQL connection is NOT OK!')
+        return jsonify({"mysql": "down"})
+
+
+@app.route('/list', methods=['GET'])
 def list():
     cur = mysql.connection.cursor()
     cur.execute("SELECT  * FROM deploy_infos")
@@ -47,24 +64,45 @@ def list():
         return jsonify(datalist)
 
 
-@app.route('/adicionar', methods=['POST'])
-def insert():
+@app.route('/list/<id>', methods=['GET'])
+def list_id(id):
     try:
-        jsoninfo = request.get_json()
-        jsoninfo['data'] = (datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
+        unicodedata.numeric(id)
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO deploy_infos (id, componente, versao, responsavel, status, data) VALUES (%(id)s, %(componente)s, %(versao)s, %(responsavel)s, %(status)s, %(data)s)", (jsoninfo))
+        query = """SELECT * FROM deploy_infos where id=%s"""
+        cur.execute(query, (id, ))
+        data = cur.fetchall()
+        datalist = []
+        if data is not None:
+            for item in data:
+                datatempobj = {
+                    'id': item[0],
+                    'componente': item[1],
+                    'versao': item[2],
+                    'responsavel': item[3],
+                    'status': item[4],
+                    'data': item[5]
+                }
+                datalist.append(datatempobj)
+            return jsonify(datalist)
+    except:
+        logging.error('The ID number must be int!')
+        return ('The ID number must be int!')
+
+
+@app.route('/delete/<id>', methods=['DELETE'])
+def delete(id):
+    try:
+        unicodedata.numeric(id)
+        cur = mysql.connection.cursor()
+        query = """DELETE FROM deploy_infos where id=%s"""
+        cur.execute(query, (id, ))
         mysql.connection.commit()
-        logging.info('Request /adicionar sucess! new deploy info saved')
-        return "New deploy info saved!!"
-    except Exception:
-        logging.error('MySQL connection is NOT OK!')
-        return jsonify({"mysql": "down"})
-
-
-@app.route('/atualizar', methods=['POST'])
-def update():
-    return "To do"
+        logging.info('The deploy with ID %s was deleted sucessfuly.' % id)
+        return ('The deploy with' + id + ' was deleted sucessfuly.')
+    except:
+        logging.error('The ID number must be int!')
+        return ('The ID number must be int!')
 
 
 @app.route('/status')

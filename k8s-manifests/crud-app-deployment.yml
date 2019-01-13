@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: crud-app-service
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30304
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: crud-app
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: crud-app-rs
+spec:
+  replicas: 3
+  revisionHistoryLimit: 10
+  template:
+    metadata:
+      labels:
+        app: crud-app
+    spec:
+      containers:
+      - name: crud-app
+        image: ferr3ira/crud-app:latest
+        ports:
+        - name: flask-port
+          containerPort: 5000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: flask-port
+          initialDelaySeconds: 8
+          timeoutSeconds: 5
+        env:
+        - name: MYSQL_HOST
+          value: mysql
+        - name: MYSQL_USER
+          value: "root"
+        - name: MYSQL_PASSWORD
+          value: "password"            
+        - name: MYSQL_DB
+          value: "crud_app"
