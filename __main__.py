@@ -6,6 +6,8 @@ from flask import Flask, jsonify, request
 
 from flask_mysqldb import MySQL
 
+from flask_selfdoc import Autodoc
+
 import logging
 
 import os
@@ -13,6 +15,7 @@ import os
 import unicodedata
 
 app = Flask(__name__)
+auto = Autodoc(app)
 
 app.config['MYSQL_HOST'] = os.environ['MYSQL_HOST']
 app.config['MYSQL_USER'] = os.environ['MYSQL_USER']
@@ -25,12 +28,26 @@ logging.basicConfig(filename='crud-app.log', level=logging.DEBUG, format='%(asct
 
 
 @app.route('/', methods=['GET'])
+@auto.doc()
 def index():
-    return "Crud App: A simple CRUD app to save deploys events!"
+    return "Crud App: A simple CRUD app to save deploys events! check /help to learn how to use this application."
 
 
 @app.route('/add', methods=['POST'])
+@auto.doc()
 def insert():
+    """
+    POST: Salva um evento na base de dados de acordo com o JSON passado junto com a requisicao.
+    Exemplo: curl --header "Content-Type: application/json" -XPOST -d \
+    '{
+        "componente": "App-Z",
+        "id": 3,
+        "responsavel": "Gabriel Ferreira",
+        "status": "Updated",
+        "versao": "1.0"
+    }' \
+    http://localhost:5000/add
+    """
     try:
         jsoninfo = request.get_json()
         jsoninfo['data'] = (datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
@@ -45,7 +62,12 @@ def insert():
 
 
 @app.route('/list', methods=['GET'])
+@auto.doc()
 def list():
+    """
+    GET: Mostra todos os eventos salvos na base de dados
+    Exemplo: curl -X "GET" http://localhost:5000/list
+    """
     cur = mysql.connection.cursor()
     cur.execute("SELECT  * FROM deploy_infos")
     data = cur.fetchall()
@@ -65,7 +87,12 @@ def list():
 
 
 @app.route('/list/<id>', methods=['GET'])
+@auto.doc()
 def list_id(id):
+    """
+    GET: Busca um evento evento no banco com base no ID passado na URI.
+    Exemplo: curl -X "GET" http://localhost:5000/list/4
+    """
     try:
         unicodedata.numeric(id)
         cur = mysql.connection.cursor()
@@ -91,7 +118,12 @@ def list_id(id):
 
 
 @app.route('/delete/<id>', methods=['DELETE'])
+@auto.doc()
 def delete(id):
+    """
+    DELETE: Remove um evento do banco com base no ID passado na URI.
+    Exemplo: curl -X "DELETE" http://localhost:5000/delete/
+    """
     try:
         unicodedata.numeric(id)
         cur = mysql.connection.cursor()
@@ -106,7 +138,12 @@ def delete(id):
 
 
 @app.route('/status')
+@auto.doc()
 def healthcheck():
+    """
+    GET: Retorna se a conexao com os componentes esta OK.
+    Exemplo: curl -XGET http://localhost:5000:port/status
+    """
     try:
         cur = mysql.connection.cursor()
         logging.info('MySQL connection is OK!')
@@ -114,6 +151,12 @@ def healthcheck():
     except Exception:
         logging.error('MySQL connection is NOT OK!')
         return jsonify({"mysql": "down"})
+
+
+@app.route('/help')
+@auto.doc()
+def documentation():
+    return auto.html()
 
 
 if __name__ == '__main__':
