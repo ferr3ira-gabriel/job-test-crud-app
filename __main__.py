@@ -30,7 +30,7 @@ logging.basicConfig(filename='crud-app.log', level=logging.DEBUG, format='%(asct
 @app.route('/', methods=['GET'])
 @auto.doc()
 def index():
-    return "Crud App: A simple CRUD app to save deploys events! check /help to learn how to use this application - 18/01/2019"
+    return "Crud App: A simple CRUD app to save deploys events! check /help to learn how to use this application - GuiaBolso"
 
 
 @app.route('/add', methods=['POST'])
