@@ -1,4 +1,4 @@
-# Flask - A simple Python CRUD application using MySQL
+# A simple Python CRUD application using MySQL
 _By Gabriel Ferreira_
 
 This repo shows how to create a simple Python CRUD application using MySQL and Flask web framework.
