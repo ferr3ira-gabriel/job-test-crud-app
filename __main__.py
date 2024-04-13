@@ -1,17 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from datetime import datetime
-
 from flask import Flask, jsonify, request
-
 from flask_mysqldb import MySQL
-
 from flask_selfdoc import Autodoc
-
+from markupsafe import Markup, escape
 import logging
-
 import os
-
 import unicodedata
 
 app = Flask(__name__)
@@ -21,6 +16,7 @@ app.config['MYSQL_HOST'] = os.environ['MYSQL_HOST']
 app.config['MYSQL_USER'] = os.environ['MYSQL_USER']
 app.config['MYSQL_PASSWORD'] = os.environ['MYSQL_PASSWORD']
 app.config['MYSQL_DB'] = os.environ['MYSQL_DB']
+app.config['MYSQL_SSL'] = {'ssl': {'ssl_version': 'PROTOCOL_TLSv1_2'}}
 
 mysql = MySQL(app)
 
@@ -30,7 +26,7 @@ logging.basicConfig(filename='crud-app.log', level=logging.DEBUG, format='%(asct
 @app.route('/', methods=['GET'])
 @auto.doc()
 def index():
-    return "Crud App: A simple CRUD app to save deploys events! check /help to learn how to use this application - GuiaBolso"
+    return "Crud App: A simple CRUD app to save deploys events! check /help to learn how to use this application"
 
 
 @app.route('/add', methods=['POST'])
@@ -131,7 +127,7 @@ def delete(id):
         cur.execute(query, (id, ))
         mysql.connection.commit()
         logging.info('The deploy with ID %s was deleted sucessfuly.' % id)
-        return ('The deploy with' + id + ' was deleted sucessfuly.')
+        return ('The deploy with ' + escape(id) + ' was deleted sucessfuly.')  # Escape the user input using Markup.escape()
     except:
         logging.error('The ID number must be int!')
         return ('The ID number must be int!')

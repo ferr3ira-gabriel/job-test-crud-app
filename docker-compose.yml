@@ -1,11 +1,11 @@
 version: '3.3'
 services:
   mysql:
-    image: mysql:5.7
+    image: mysql:8.3.0
     container_name: crud-app-mysql
     volumes:
        - ./crud-app.sql:/docker-entrypoint-initdb.d/crud-app.sql
-       - ./data:/var/lib/mysql
+       - mysql_data:/var/lib/mysql
     environment:
         MYSQL_DATABASE: crud_app
         MYSQL_ROOT_PASSWORD: crud-app
@@ -28,3 +28,5 @@ services:
         MYSQL_USER: root
         MYSQL_PASSWORD: crud-app
         MYSQL_DB: crud_app
+volumes:
+  mysql_data:

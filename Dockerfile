@@ -1,7 +1,8 @@
-FROM python:3.6-alpine
+FROM python:alpine3.19
+
 COPY requirements.txt /requirements.txt
-RUN apk --no-cache add --virtual build-dependencies build-base py-mysqldb gcc libc-dev libffi-dev mariadb-dev 
-RUN pip install -r /requirements.txt
+RUN apk --no-cache add --virtual build-dependencies build-base gcc libc-dev libffi-dev mariadb-dev
+RUN pip3 install --upgrade -r /requirements.txt
 COPY . /crud-app
 WORKDIR /crud-app
 
