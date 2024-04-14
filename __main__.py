@@ -33,14 +33,14 @@ def index():
 @auto.doc()
 def insert():
     """
-    POST: Salva um evento na base de dados de acordo com o JSON passado junto com a requisicao.
-    Exemplo: curl --header "Content-Type: application/json" -XPOST -d \
+    POST: Saves an event in the database according to the JSON passed along with the request
+    Example: curl --header "Content-Type: application/json" -XPOST -d \
     '{
-        "componente": "App-Z",
+        "component": "App-Z",
         "id": 3,
-        "responsavel": "Gabriel Ferreira",
+        "owner": "Gabriel Ferreira",
         "status": "Updated",
-        "versao": "1.0"
+        "version": "1.0"
     }' \
     http://localhost:5000/add
     """
@@ -48,21 +48,21 @@ def insert():
         jsoninfo = request.get_json()
         jsoninfo['data'] = (datetime.now()).strftime('%Y-%m-%d %H:%M:%S')
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO deploy_infos (id, componente, versao, responsavel, status, data) VALUES (%(id)s, %(componente)s, %(versao)s, %(responsavel)s, %(status)s, %(data)s)", (jsoninfo))
+        cur.execute("INSERT INTO deploy_infos (id, component, version, owner, status, data) VALUES (%(id)s, %(component)s, %(version)s, %(owner)s, %(status)s, %(data)s)", (jsoninfo))
         mysql.connection.commit()
         logging.info('A new deploy info saved.')
-        return ("A new deploy info saved.")
-    except Exception:
-        logging.error('MySQL connection is NOT OK!')
-        return jsonify({"mysql": "down"})
+        return jsonify({"message": "A new deploy info saved."}), 201
+    except Exception as e:
+        logging.error(f"MySQL connection error: {e}")
+        return jsonify({"error": f"Failed to save deploy info. Error: {e}"}), 500
 
 
 @app.route('/list', methods=['GET'])
 @auto.doc()
 def list():
     """
-    GET: Mostra todos os eventos salvos na base de dados
-    Exemplo: curl -X "GET" http://localhost:5000/list
+    GET: Show all events saved in the database
+    Example: curl -X "GET" http://localhost:5000/list
     """
     cur = mysql.connection.cursor()
     cur.execute("SELECT  * FROM deploy_infos")
@@ -72,9 +72,9 @@ def list():
         for item in data:
             datatempobj = {
                 'id': item[0],
-                'componente': item[1],
-                'versao': item[2],
-                'responsavel': item[3],
+                'component': item[1],
+                'version': item[2],
+                'owner': item[3],
                 'status': item[4],
                 'data': item[5]
             }
@@ -86,8 +86,8 @@ def list():
 @auto.doc()
 def list_id(id):
     """
-    GET: Busca um evento evento no banco com base no ID passado na URI.
-    Exemplo: curl -X "GET" http://localhost:5000/list/4
+    GET: Searches for an event in the database based on the ID passed in the URI
+    Example: curl -X "GET" http://localhost:5000/list/4
     """
     try:
         unicodedata.numeric(id)
@@ -100,9 +100,9 @@ def list_id(id):
             for item in data:
                 datatempobj = {
                     'id': item[0],
-                    'componente': item[1],
-                    'versao': item[2],
-                    'responsavel': item[3],
+                    'component': item[1],
+                    'version': item[2],
+                    'owner': item[3],
                     'status': item[4],
                     'data': item[5]
                 }
@@ -117,8 +117,8 @@ def list_id(id):
 @auto.doc()
 def delete(id):
     """
-    DELETE: Remove um evento do banco com base no ID passado na URI.
-    Exemplo: curl -X "DELETE" http://localhost:5000/delete/
+    DELETE: Removes an event from the database based on the ID passed in the URI
+    Example: curl -X "DELETE" http://localhost:5000/delete/
     """
     try:
         unicodedata.numeric(id)
@@ -137,8 +137,8 @@ def delete(id):
 @auto.doc()
 def healthcheck():
     """
-    GET: Retorna se a conexao com os componentes esta OK.
-    Exemplo: curl -XGET http://localhost:5000:port/status
+    GET: Returns whether the connection to the components is OK
+    Example: curl -XGET http://localhost:5000:port/status
     """
     try:
         cur = mysql.connection.cursor()
