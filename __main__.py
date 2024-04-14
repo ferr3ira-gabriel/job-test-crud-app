@@ -54,8 +54,9 @@ def insert():
         return jsonify({"message": "A new deploy info saved."}), 201
     except Exception as e:
         logging.error(f"MySQL connection error: {e}")
-        return jsonify({"error": f"Failed to save deploy info. Error: {e}"}), 500
 
+        # Return error message with HTTP status code 500
+        return jsonify({"error": "Failed to save deploy info. Please try again later."}), 500
 
 @app.route('/list', methods=['GET'])
 @auto.doc()
